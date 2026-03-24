@@ -20,6 +20,12 @@ on:
       STORYBOOK_URL:
         description: 'storybook URL'
         required: true
+      TEAMS_SUCCESS_WEBHOOK_URL:
+        description: 'Teams webhook URL for success notifications'
+        required: true
+      TEAMS_FAILURE_WEBHOOK_URL:
+        description: 'Teams webhook URL for failure notifications'
+        required: true
 
 run-name: >
   ${{ github.event.inputs.GIT_REPO }} . ${{ github.event.inputs.GIT_BRANCH }} . publish-storybook
@@ -37,15 +43,6 @@ jobs:
       - name: install yarn
         run: npm install --global yarn
 
-      - name: ensure aws cli is present
-        run: aws --version
-
-      - name: authenticate aws cli
-        run: |
-          aws configure set aws_access_key_id "${{ secrets.AWS_ACCESS_KEY_ID }}"
-          aws configure set aws_secret_access_key "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-          aws configure set default.region eu-west-1
-
       - name: write boot.env
         run: |
           sudo tee /boot.env > /dev/null <<EOF
@@ -53,11 +50,12 @@ jobs:
           REPO_TO_FETCH=github.com/atex-ci/${{ github.event.inputs.GIT_REPO }}.git
           CONVOX_RACK=
           CONVOX_APP=
+          CONVOX_TOKEN=
           CUSTOM_CONVOX_DOMAIN=
           GH_USERNAME=${{ github.repository_owner }}
           GH_PASSWORD=${{ secrets.GH_PASSWORD }}
-          TEAMS_SUCCESS_WEBHOOK_URL=${{ secrets.TEAMS_SUCCESS_WEBHOOK_URL }}
-          TEAMS_FAILURE_WEBHOOK_URL=${{ secrets.TEAMS_FAILURE_WEBHOOK_URL }}
+          TEAMS_SUCCESS_WEBHOOK_URL=${{ github.event.inputs.TEAMS_SUCCESS_WEBHOOK_URL }}
+          TEAMS_FAILURE_WEBHOOK_URL=${{ github.event.inputs.TEAMS_FAILURE_WEBHOOK_URL }}
           JIRA_AUTH_TOKEN=${{ secrets.JIRA_AUTH_TOKEN }}
           PIPELINE=publish-storybook
           TARGET_ENV=
