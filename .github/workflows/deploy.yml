@@ -1,4 +1,4 @@
-name: manual-build
+name: deploy
 
 on:
   workflow_dispatch:
@@ -11,30 +11,32 @@ on:
         description: 'customer repo name (e.g. next-web-starterkit)'
         required: true
       ENVIRONMENT:
-        description: 'environment (used for pipeline/env routing)'
+        type: choice
+        description: 'target environment to deploy to'
         required: true
-        default: 'development'
+        options:
+          - STAGING
+          - PRODUCTION
       CONVOX_RACK:
         description: 'convox rack name'
         required: true
-        default: 'atex-dev'
       CONVOX_APP:
         description: 'convox app name'
         required: true
-      CUSTOM_CONVOX_DOMAIN:
-        description: 'custom convox domain (leave empty if not applicable)'
-        required: false
-        default: ''
       S3_BUCKET:
         description: 's3 bucket for CI results'
         required: true
-      PIPELINE:
-        description: 'pipeline to run (e.g. development, development-full)'
-        required: false
-        default: ''
+      OPERATION:
+        type: choice
+        description: 'action to perform (deploy=build & deploy, upgrade=in place upgrade)'
+        required: true
+        default: 'deploy'
+        options:
+          - deploy
+          - upgrade
 
 run-name: >
-  ${{ github.event.inputs.GIT_REPO }} . ${{ github.event.inputs.GIT_BRANCH }} . build
+  ${{ github.event.inputs.GIT_REPO }} . ${{ github.event.inputs.GIT_BRANCH }} . ${{ github.event.inputs.OPERATION }} . ${{ github.event.inputs.ENVIRONMENT }}
 
 jobs:
   main:
@@ -48,9 +50,6 @@ jobs:
 
       - name: install yarn
         run: npm install --global yarn
-
-      - name: install playwright browsers
-        run: npx -y playwright@1.18 install --with-deps chromium firefox
 
       - name: ensure aws cli is present
         run: aws --version
@@ -75,14 +74,14 @@ jobs:
           REPO_TO_FETCH=github.com/atex-ci/${{ github.event.inputs.GIT_REPO }}.git
           CONVOX_RACK=${{ github.event.inputs.CONVOX_RACK }}
           CONVOX_APP=${{ github.event.inputs.CONVOX_APP }}
-          CUSTOM_CONVOX_DOMAIN=${{ github.event.inputs.CUSTOM_CONVOX_DOMAIN }}
+          CUSTOM_CONVOX_DOMAIN=
           GH_USERNAME=${{ github.repository_owner }}
           GH_PASSWORD=${{ secrets.GH_PASSWORD }}
           TEAMS_SUCCESS_WEBHOOK_URL=${{ secrets.TEAMS_SUCCESS_WEBHOOK_URL }}
           TEAMS_FAILURE_WEBHOOK_URL=${{ secrets.TEAMS_FAILURE_WEBHOOK_URL }}
           JIRA_AUTH_TOKEN=${{ secrets.JIRA_AUTH_TOKEN }}
-          PIPELINE=${{ github.event.inputs.PIPELINE }}
-          TARGET_ENV=
+          PIPELINE=${{ github.event.inputs.OPERATION }}
+          TARGET_ENV=${{ github.event.inputs.ENVIRONMENT }}
           STORYBOOK_LANGUAGE=
           STORYBOOK_URL=
           S3_BUCKET=${{ github.event.inputs.S3_BUCKET }}

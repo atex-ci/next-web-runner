@@ -1,4 +1,4 @@
-name: manual-build
+name: publish-storybook
 
 on:
   workflow_dispatch:
@@ -10,31 +10,19 @@ on:
       GIT_REPO:
         description: 'customer repo name (e.g. next-web-starterkit)'
         required: true
-      ENVIRONMENT:
-        description: 'environment (used for pipeline/env routing)'
-        required: true
-        default: 'development'
-      CONVOX_RACK:
-        description: 'convox rack name'
-        required: true
-        default: 'atex-dev'
-      CONVOX_APP:
-        description: 'convox app name'
-        required: true
-      CUSTOM_CONVOX_DOMAIN:
-        description: 'custom convox domain (leave empty if not applicable)'
-        required: false
-        default: ''
       S3_BUCKET:
         description: 's3 bucket for CI results'
         required: true
-      PIPELINE:
-        description: 'pipeline to run (e.g. development, development-full)'
+      STORYBOOK_LANGUAGE:
+        description: 'storybook language'
         required: false
-        default: ''
+        default: 'en'
+      STORYBOOK_URL:
+        description: 'storybook URL'
+        required: true
 
 run-name: >
-  ${{ github.event.inputs.GIT_REPO }} . ${{ github.event.inputs.GIT_BRANCH }} . build
+  ${{ github.event.inputs.GIT_REPO }} . ${{ github.event.inputs.GIT_BRANCH }} . publish-storybook
 
 jobs:
   main:
@@ -49,9 +37,6 @@ jobs:
       - name: install yarn
         run: npm install --global yarn
 
-      - name: install playwright browsers
-        run: npx -y playwright@1.18 install --with-deps chromium firefox
-
       - name: ensure aws cli is present
         run: aws --version
 
@@ -61,30 +46,23 @@ jobs:
           aws configure set aws_secret_access_key "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
           aws configure set default.region eu-west-1
 
-      - name: install convox cli
-        run: |
-          curl -L https://github.com/convox/convox/releases/latest/download/convox-linux -o /tmp/convox
-          sudo mv /tmp/convox /usr/local/bin/convox
-          chmod 755 /usr/local/bin/convox
-          convox version
-
       - name: write boot.env
         run: |
           sudo tee /boot.env > /dev/null <<EOF
           BRANCH_TO_BUILD=${{ github.event.inputs.GIT_BRANCH }}
           REPO_TO_FETCH=github.com/atex-ci/${{ github.event.inputs.GIT_REPO }}.git
-          CONVOX_RACK=${{ github.event.inputs.CONVOX_RACK }}
-          CONVOX_APP=${{ github.event.inputs.CONVOX_APP }}
-          CUSTOM_CONVOX_DOMAIN=${{ github.event.inputs.CUSTOM_CONVOX_DOMAIN }}
+          CONVOX_RACK=
+          CONVOX_APP=
+          CUSTOM_CONVOX_DOMAIN=
           GH_USERNAME=${{ github.repository_owner }}
           GH_PASSWORD=${{ secrets.GH_PASSWORD }}
           TEAMS_SUCCESS_WEBHOOK_URL=${{ secrets.TEAMS_SUCCESS_WEBHOOK_URL }}
           TEAMS_FAILURE_WEBHOOK_URL=${{ secrets.TEAMS_FAILURE_WEBHOOK_URL }}
           JIRA_AUTH_TOKEN=${{ secrets.JIRA_AUTH_TOKEN }}
-          PIPELINE=${{ github.event.inputs.PIPELINE }}
+          PIPELINE=publish-storybook
           TARGET_ENV=
-          STORYBOOK_LANGUAGE=
-          STORYBOOK_URL=
+          STORYBOOK_LANGUAGE=${{ github.event.inputs.STORYBOOK_LANGUAGE }}
+          STORYBOOK_URL=${{ github.event.inputs.STORYBOOK_URL }}
           S3_BUCKET=${{ github.event.inputs.S3_BUCKET }}
           AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
