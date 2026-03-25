@@ -29,12 +29,11 @@ on:
         default: ''
       OPERATION:
         type: choice
-        description: 'action to perform (deploy=build & deploy, upgrade=in place upgrade)'
+        description: 'action to perform'
         required: true
         default: 'deploy'
         options:
           - deploy
-          - upgrade
       TEAMS_SUCCESS_WEBHOOK_URL:
         description: 'Teams webhook URL for success notifications'
         required: true
