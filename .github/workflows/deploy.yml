@@ -23,6 +23,10 @@ on:
       CONVOX_APP:
         description: 'convox app name'
         required: true
+      CUSTOM_CONVOX_DOMAIN:
+        description: 'custom convox domain (leave empty if not applicable)'
+        required: false
+        default: ''
       S3_BUCKET:
         description: 's3 bucket for CI results'
         required: true
@@ -72,7 +76,7 @@ jobs:
           CONVOX_RACK=${{ github.event.inputs.CONVOX_RACK }}
           CONVOX_APP=${{ github.event.inputs.CONVOX_APP }}
           CONVOX_TOKEN=${{ secrets.CONVOX_TOKEN }}
-          CUSTOM_CONVOX_DOMAIN=
+          CUSTOM_CONVOX_DOMAIN=${{ github.event.inputs.CUSTOM_CONVOX_DOMAIN }}
           GH_USERNAME=${{ github.repository_owner }}
           GH_PASSWORD=${{ secrets.GH_PASSWORD }}
           TEAMS_SUCCESS_WEBHOOK_URL=${{ github.event.inputs.TEAMS_SUCCESS_WEBHOOK_URL }}
