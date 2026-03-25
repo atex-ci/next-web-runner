@@ -10,9 +10,6 @@ on:
       GIT_REPO:
         description: 'customer repo name (e.g. next-web-starterkit)'
         required: true
-      S3_BUCKET:
-        description: 's3 bucket for CI results'
-        required: true
       STORYBOOK_LANGUAGE:
         description: 'storybook language'
         required: false
@@ -43,6 +40,13 @@ jobs:
       - name: install yarn
         run: npm install --global yarn
 
+      - name: Get Current Job Log URL
+        uses: Tiryoh/gha-jobid-action@v0
+        id: jobs
+        with:
+          github_token: ${{ secrets.GH_PASSWORD }}
+          job_name: ${{ github.job }}
+
       - name: write boot.env
         run: |
           sudo tee /boot.env > /dev/null <<EOF
@@ -61,10 +65,10 @@ jobs:
           TARGET_ENV=
           STORYBOOK_LANGUAGE=${{ github.event.inputs.STORYBOOK_LANGUAGE }}
           STORYBOOK_URL=${{ github.event.inputs.STORYBOOK_URL }}
-          S3_BUCKET=${{ github.event.inputs.S3_BUCKET }}
           AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+          JOB_URL=${{ steps.jobs.outputs.html_url }}
           EOF
 
       - name: run boot.sh
