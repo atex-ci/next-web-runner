@@ -80,5 +80,6 @@ jobs:
           sudo chmod +x /boot.sh
 
           rm -rf /tmp/next-web-checkout
+          cd /
 
           sudo -E /boot.sh
