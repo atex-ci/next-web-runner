@@ -40,6 +40,10 @@ on:
       TEAMS_FAILURE_WEBHOOK_URL:
         description: 'Teams webhook URL for failure notifications'
         required: true
+      SKIP_SANITY_CHECK:
+        description: 'if set to "true", sanity check during deploy to production will be skipped'
+        required: false
+        default: 'false'
 
 run-name: >
   ${{ github.event.inputs.GIT_REPO }} . ${{ github.event.inputs.GIT_BRANCH }} . ${{ github.event.inputs.OPERATION }} . ${{ github.event.inputs.ENVIRONMENT }}
@@ -92,6 +96,7 @@ jobs:
           AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           JOB_URL=${{ steps.jobs.outputs.html_url }}
+          SKIP_SANITY_CHECK=${{ github.event.inputs.SKIP_SANITY_CHECK }}
           EOF
 
       - name: run boot.sh
