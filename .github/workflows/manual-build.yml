@@ -16,6 +16,10 @@ on:
       TEAMS_FAILURE_WEBHOOK_URL:
         description: 'Teams webhook URL for failure notifications'
         required: true
+      REPO_OWNER:
+        description: 'GitHub org or user that owns the repo (e.g. Atex-MyType-Web, atex-ci)'
+        required: true
+        default: 'Atex-MyType-Web'
 
 run-name: >
   ${{ github.event.inputs.GIT_REPO }} . ${{ github.event.inputs.GIT_BRANCH }} . build
@@ -47,7 +51,7 @@ jobs:
         run: |
           sudo tee /boot.env > /dev/null <<EOF
           BRANCH_TO_BUILD=${{ github.event.inputs.GIT_BRANCH }}
-          REPO_TO_FETCH=github.com/Atex-MyType-Web/${{ github.event.inputs.GIT_REPO }}.git
+          REPO_TO_FETCH=github.com/${{ github.event.inputs.REPO_OWNER }}/${{ github.event.inputs.GIT_REPO }}.git
           CONVOX_RACK=
           CONVOX_APP=
           CONVOX_TOKEN=
@@ -69,7 +73,7 @@ jobs:
       - name: run boot.sh
         run: |
           git config --global http.sslverify false
-          git clone --branch "${{ github.event.inputs.GIT_BRANCH }}" "https://${{ github.repository_owner }}:${{ secrets.GH_PASSWORD }}@github.com/Atex-MyType-Web/${{ github.event.inputs.GIT_REPO }}.git" /tmp/next-web-checkout
+          git clone --branch "${{ github.event.inputs.GIT_BRANCH }}" "https://${{ github.repository_owner }}:${{ secrets.GH_PASSWORD }}@github.com/${{ github.event.inputs.REPO_OWNER }}/${{ github.event.inputs.GIT_REPO }}.git" /tmp/next-web-checkout
 
           cd /tmp/next-web-checkout
           sed -i -e "s|github.com|${{ github.repository_owner }}:${{ secrets.GH_PASSWORD }}@github.com|g" .gitmodules
