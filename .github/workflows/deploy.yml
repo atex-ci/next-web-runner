@@ -57,10 +57,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: setup node 18
+      - name: detect node version from target repo
+        id: node
+        run: |
+          v=$(curl -fsSL \
+            -H "Authorization: Bearer ${{ secrets.GH_PASSWORD }}" \
+            -H "Accept: application/vnd.github.raw" \
+            "https://api.github.com/repos/${{ github.event.inputs.REPO_OWNER }}/${{ github.event.inputs.GIT_REPO }}/contents/.nvmrc?ref=${{ github.event.inputs.GIT_BRANCH }}" \
+            | tr -d '[:space:]')
+          [ -z "$v" ] && v=18
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "Selected node $v for ${{ github.event.inputs.GIT_REPO }}@${{ github.event.inputs.GIT_BRANCH }}"
+
+      - name: setup node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ steps.node.outputs.version }}
 
       - name: install yarn
         run: npm install --global yarn
